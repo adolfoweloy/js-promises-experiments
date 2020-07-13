@@ -11,14 +11,23 @@ function queryAPI(endpoint) {
   })
 }
 
-Promise.all([
-  queryAPI('films'),
-  queryAPI('planets')
+// changed from Promise.all to Promise.allSettled
+// to avoid getting a rejected promise in case that there's
+// at least a fulfilled/resolved entry
+Promise.allSettled([
+  queryAPI('moto').then(m => `${m.length} motos`),
+  queryAPI('films').then(f => `${f.length} films`),
+  queryAPI('planets').then(p => `${p.length} planets`),
+  queryAPI('species').then(s => `${s.length} species`),
 ])
-.then(([films, planets]) => {
-    output.innerText = 
-      `${films.length} films, `  +
-      `${planets.length} planets `;
+.then(results => {
+    const entries = results
+      .filter(r => r.status === 'fulfilled')
+      .map(r => r.value);
+  
+    output.innerText = entries.length > 0
+      ? entries.join('\n')
+      : 'no results';
 })
 .finally(() => {
   spinner.remove();
